@@ -1,6 +1,7 @@
 const express = require("express");
 const twilio = require("twilio");
 const zod = require("zod");
+require("dotenv").config();
 const { User, Account } = require("../db");
 const { JWT_SECRET } = require("../config");
 const router = express.Router();
@@ -140,9 +141,9 @@ router.get("/bulk", async (req, res) => {
 
 // otp testing
 
-const accountSid = "AC681a7fb1a4600cc9557f1e9dc1966b07";
-const authToken = "65cbf1ca29cf00c53a09562c89f72a14";
-const twilioPhoneNumber = "+13318260715";
+const accountSid = process.env.accountSid;
+const authToken = process.env.authToken;
+const twilioPhoneNumber = process.env.twilioPhoneNumber;
 
 const client = twilio(accountSid, authToken);
 
