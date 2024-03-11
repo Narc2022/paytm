@@ -1,4 +1,5 @@
 const express = require("express");
+const twilio = require("twilio");
 const zod = require("zod");
 const { User, Account } = require("../db");
 const { JWT_SECRET } = require("../config");
@@ -135,6 +136,63 @@ router.get("/bulk", async (req, res) => {
       _id: user._id,
     })),
   });
+});
+
+// otp testing
+
+const accountSid = "AC681a7fb1a4600cc9557f1e9dc1966b07";
+const authToken = "65cbf1ca29cf00c53a09562c89f72a14";
+const twilioPhoneNumber = "+13318260715";
+
+const client = twilio(accountSid, authToken);
+
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000);
+}
+
+const otpMap = new Map();
+
+router.post("/sendotp", (req, res) => {
+  const { mobileNumber } = req.body;
+
+  const otp = generateOTP();
+  otpMap.set(mobileNumber, otp);
+
+  client.messages
+    .create({
+      body: `Your OTP for mobile number verification is: ${otp}`,
+      from: twilioPhoneNumber,
+      to: mobileNumber,
+    })
+    .then(() => {
+      res.json({ success: true, message: "OTP sent successfully" });
+    })
+    .catch((error) => {
+      console.error("Error sending OTP:", error);
+      res.status(500).json({ success: false, message: "Failed to send OTP" });
+    });
+});
+
+router.post("/verify/mobile", (req, res) => {
+  const { mobileNumber, otp } = req.body;
+
+  if (!otpMap.has(mobileNumber)) {
+    return res
+      .status(400)
+      .json({ success: false, message: "OTP not sent for this mobile number" });
+  }
+
+  const storedOTP = otpMap.get(mobileNumber);
+
+  if (otp == storedOTP) {
+    otpMap.delete(mobileNumber);
+    res.json({
+      success: true,
+      message: `Mobile number ${mobileNumber} verified successfully`,
+    });
+  } else {
+    res.status(400).json({ success: false, message: "Incorrect OTP" });
+  }
 });
 
 module.exports = router;
