@@ -13,6 +13,24 @@ const signupSchema = zod.object({
   firstName: zod.string(),
   lastName: zod.string(),
 });
+// otp testing
+const accountSid = process.env.accountSid;
+const authToken = process.env.authToken;
+const twilioPhoneNumber = process.env.twilioPhoneNumber;
+const client = twilio(accountSid, authToken);
+// Email Verification
+const nodemailer = require("nodemailer");
+const randomstring = require("randomstring");
+const userEmail = process.env.userEmail;
+const userPass = process.env.userPass;
+const transporter = nodemailer.createTransport({
+  service: "Gmail", // Change to your email service
+  auth: {
+    user: userEmail, // Change to your email
+    pass: userPass, // Change to your password
+  },
+});
+
 router.post("/signup", async (req, res) => {
   const body = req.body;
   const { success } = signupSchema.safeParse(req.body);
@@ -139,20 +157,11 @@ router.get("/bulk", async (req, res) => {
   });
 });
 
-// otp testing
-
-const accountSid = process.env.accountSid;
-const authToken = process.env.authToken;
-const twilioPhoneNumber = process.env.twilioPhoneNumber;
-
-const client = twilio(accountSid, authToken);
-
+// Mobile OTP
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000);
 }
-
 const otpMap = new Map();
-
 router.post("/sendotp", (req, res) => {
   const { mobileNumber } = req.body;
 
@@ -196,19 +205,7 @@ router.post("/verify/mobile", (req, res) => {
   }
 });
 
-// Email Verification
-
-const nodemailer = require("nodemailer");
-const randomstring = require("randomstring");
-const userEmail = process.env.userEmail;
-const userPass = process.env.userPass;
-const transporter = nodemailer.createTransport({
-  service: "Gmail", // Change to your email service
-  auth: {
-    user: userEmail, // Change to your email
-    pass: userPass, // Change to your password
-  },
-});
+//Email Routes
 
 // Route to generate and send OTP
 router.post("/send-otp", (req, res) => {
