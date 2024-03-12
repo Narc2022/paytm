@@ -44,6 +44,7 @@ const studentSchema = zod.object({
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000);
 }
+
 const otpMap = new Map();
 router.post("/sendotp", (req, res) => {
   const { mobileNumber } = req.body;
@@ -169,4 +170,33 @@ router.post("/create", async (req, res) => {
   });
 });
 
+router.get("/", async (req, res) => {
+  const filter = req.query.filter || "";
+  const students = await Student.find({
+    $or: [
+      {
+        email: {
+          $regex: filter,
+        },
+      },
+    ],
+  });
+  res.json({
+    students: students.map((student) => ({
+      "Full Name": student.fullName,
+      Email: student.email,
+      Contact: student.contact,
+      Age: student.age,
+      Gender: student.gender,
+      Address: student.address,
+      "Current Academic Level": student.currentAcademicLevel,
+      "Current School": student.currentSchool,
+      "Field Of Study": student.fieldOfStudy,
+      "Desire Study Destination": student.desireStudyDestination,
+      "Expected Year": student.expectedYear,
+      "Language Proficiency": student.languageProficiency,
+      "Any Specific Question": student.anySpecificQuestion,
+    })),
+  });
+});
 module.exports = router;
